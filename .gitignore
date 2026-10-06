@@ -8,3 +8,4 @@ functions-py/fetch_prs.py
 functions-py/score.py
 __pycache__/
 weaveos_assessment.md
+weaveos_assessment_full.md
