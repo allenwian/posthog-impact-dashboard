@@ -1,0 +1,1161 @@
+{
+ "backend": {
+  "areas": [
+   {
+    "pathPrefix": "rust/capture/",
+    "area": "Event capture endpoint (Rust capture)",
+    "layer": "ingestion",
+    "criticality": 1,
+    "rationale": "Front door for every event; a bug here loses or corrupts customer data at the source."
+   },
+   {
+    "pathPrefix": "rust/capture-logs/",
+    "area": "Logs capture (Rust)",
+    "layer": "ingestion",
+    "criticality": 0.75,
+    "rationale": "OTel/logs intake for the logs product; data path but newer, lower blast radius than main capture."
+   },
+   {
+    "pathPrefix": "rust/ingestion-consumer/",
+    "area": "Rust ingestion consumer",
+    "layer": "ingestion",
+    "criticality": 0.95,
+    "rationale": "Kafka consumer in the event ingestion path; correctness of stored events."
+   },
+   {
+    "pathPrefix": "rust/ingestion-control-plane/",
+    "area": "Ingestion control plane (Rust)",
+    "layer": "ingestion",
+    "criticality": 0.85,
+    "rationale": "Orchestrates ingestion workers/partitioning; distributed-systems work."
+   },
+   {
+    "pathPrefix": "rust/kafka-deduplicator/",
+    "area": "Kafka event deduplicator (Rust)",
+    "layer": "ingestion",
+    "criticality": 0.9,
+    "rationale": "Removes duplicate events before storage; direct data-correctness impact."
+   },
+   {
+    "pathPrefix": "rust/kafka-assigner/",
+    "area": "Kafka partition assigner (Rust)",
+    "layer": "ingestion",
+    "criticality": 0.8,
+    "rationale": "Partition assignment for ingestion consumers; stateful distributed infra."
+   },
+   {
+    "pathPrefix": "rust/personhog-",
+    "area": "PersonHog person store (Rust: leader/replica/router/writer/identity/coordination)",
+    "layer": "data-pipeline",
+    "criticality": 0.95,
+    "rationale": "New replicated person/identity store; persons and distinct-id merges are core to correctness of every query. Includes stateright model checking \u2014 very deep work."
+   },
+   {
+    "pathPrefix": "rust/persons_migrations/",
+    "area": "Persons DB migrations (Rust)",
+    "layer": "data-pipeline",
+    "criticality": 0.6,
+    "rationale": "Schema for persons store; important but mostly declarative."
+   },
+   {
+    "pathPrefix": "rust/feature-flags/",
+    "area": "Feature flag evaluation service (Rust)",
+    "layer": "backend-core",
+    "criticality": 0.95,
+    "rationale": "Serves /flags on the customer hot path at very high QPS; wrong evaluation breaks customer apps."
+   },
+   {
+    "pathPrefix": "rust/flags-consumer/",
+    "area": "Flags consumer / read store (Rust)",
+    "layer": "backend-core",
+    "criticality": 0.8,
+    "rationale": "Keeps flag read store in sync; supports flag evaluation correctness."
+   },
+   {
+    "pathPrefix": "rust/hypercache-server/",
+    "area": "HyperCache server (Rust)",
+    "layer": "backend-core",
+    "criticality": 0.75,
+    "rationale": "Caching layer for flags/config served to SDKs."
+   },
+   {
+    "pathPrefix": "rust/cymbal/",
+    "area": "Error tracking symbolication & grouping (Rust cymbal)",
+    "layer": "data-pipeline",
+    "criticality": 0.85,
+    "rationale": "Symbolicates stack traces and fingerprints/groups exceptions; core of error tracking product."
+   },
+   {
+    "pathPrefix": "rust/property-defs-rs/",
+    "area": "Property definitions pipeline (Rust)",
+    "layer": "data-pipeline",
+    "criticality": 0.7,
+    "rationale": "Derives event/property taxonomy from the event stream; powers the taxonomy everywhere in the UI."
+   },
+   {
+    "pathPrefix": "rust/property-vals-rs/",
+    "area": "Property values pipeline (Rust)",
+    "layer": "data-pipeline",
+    "criticality": 0.6,
+    "rationale": "Property value suggestions; supporting data pipeline."
+   },
+   {
+    "pathPrefix": "rust/cohort-",
+    "area": "Behavioral cohorts streaming (Rust cohort-core/stream-processor/event-shuffler)",
+    "layer": "data-pipeline",
+    "criticality": 0.85,
+    "rationale": "Real-time cohort membership computation; stream processing with correctness implications for targeting."
+   },
+   {
+    "pathPrefix": "rust/batch-import-worker/",
+    "area": "Batch import worker (Rust)",
+    "layer": "ingestion",
+    "criticality": 0.7,
+    "rationale": "Historical/bulk import path into ingestion."
+   },
+   {
+    "pathPrefix": "rust/usage-ingestion/",
+    "area": "Usage ingestion (Rust)",
+    "layer": "data-pipeline",
+    "criticality": 0.7,
+    "rationale": "Usage metering pipeline feeding billing; money-correctness."
+   },
+   {
+    "pathPrefix": "rust/hogql/",
+    "area": "HogQL in Rust",
+    "layer": "query-engine",
+    "criticality": 0.85,
+    "rationale": "Rust implementation/parser pieces of the query language."
+   },
+   {
+    "pathPrefix": "rust/deltalite/",
+    "area": "Deltalite (Rust, Delta Lake)",
+    "layer": "data-pipeline",
+    "criticality": 0.7,
+    "rationale": "Data warehouse table format handling."
+   },
+   {
+    "pathPrefix": "rust/embedding-worker/",
+    "area": "Embedding worker (Rust)",
+    "layer": "data-pipeline",
+    "criticality": 0.5,
+    "rationale": "AI/embedding side pipeline; non-critical path."
+   },
+   {
+    "pathPrefix": "rust/replay-anonymizer",
+    "area": "Replay anonymizer (Rust)",
+    "layer": "data-pipeline",
+    "criticality": 0.6,
+    "rationale": "Privacy processing of session recordings."
+   },
+   {
+    "pathPrefix": "rust/common/",
+    "area": "Rust shared libraries",
+    "layer": "backend-core",
+    "criticality": 0.75,
+    "rationale": "Shared kafka/health/metrics crates used by all Rust services; broad blast radius."
+   },
+   {
+    "pathPrefix": "rust/capture-load-gen/",
+    "area": "Rust capture load generator / tooling",
+    "layer": "tests",
+    "criticality": 0.3,
+    "rationale": "Load testing tooling."
+   },
+   {
+    "pathPrefix": "rust/",
+    "area": "Other Rust services (pgapi, pgcollector, affected-services, protos, misc)",
+    "layer": "backend-core",
+    "criticality": 0.6,
+    "rationale": "Catch-all for remaining crates; mostly supporting infra and protos."
+   },
+   {
+    "pathPrefix": "nodejs/src/ingestion/",
+    "area": "Node ingestion pipeline (person processing, event pipeline)",
+    "layer": "ingestion",
+    "criticality": 1,
+    "rationale": "Processes every event: person/group resolution, property merges, writes to ClickHouse. Data correctness core."
+   },
+   {
+    "pathPrefix": "nodejs/src/cdp/",
+    "area": "CDP / Hog functions runtime (Node)",
+    "layer": "data-pipeline",
+    "criticality": 0.85,
+    "rationale": "Executes destinations, transformations and workflows on live events; customer-facing reliability."
+   },
+   {
+    "pathPrefix": "nodejs/src/session-replay/",
+    "area": "Session replay ingestion (Node)",
+    "layer": "ingestion",
+    "criticality": 0.85,
+    "rationale": "Ingests and persists recording blobs; data loss here breaks replay."
+   },
+   {
+    "pathPrefix": "nodejs/src/logs/",
+    "area": "Logs ingestion (Node)",
+    "layer": "ingestion",
+    "criticality": 0.7,
+    "rationale": "Logs product ingestion path."
+   },
+   {
+    "pathPrefix": "nodejs/src/messaging/",
+    "area": "Messaging (Node)",
+    "layer": "backend-product",
+    "criticality": 0.55,
+    "rationale": "Messaging/workflow delivery support."
+   },
+   {
+    "pathPrefix": "nodejs/src/ai-observability/",
+    "area": "AI observability ingestion (Node)",
+    "layer": "ingestion",
+    "criticality": 0.6,
+    "rationale": "LLM analytics event processing."
+   },
+   {
+    "pathPrefix": "nodejs/src/",
+    "area": "Node plugin-server core (servers, common, lifecycle)",
+    "layer": "backend-core",
+    "criticality": 0.75,
+    "rationale": "Shared runtime, kafka, DB utilities for all Node workloads."
+   },
+   {
+    "pathPrefix": "nodejs/tests/",
+    "area": "Node tests",
+    "layer": "tests",
+    "criticality": 0.35,
+    "rationale": "Tests; value but discounted."
+   },
+   {
+    "pathPrefix": "posthog/hogql/",
+    "area": "HogQL query engine (parser, compiler, printer, database schema, cost)",
+    "layer": "query-engine",
+    "criticality": 1,
+    "rationale": "Translates every analytics query to ClickHouse SQL; correctness and perf of all insights."
+   },
+   {
+    "pathPrefix": "posthog/hogql_queries/",
+    "area": "Query runners (trends, funnels, retention, paths, web analytics, etc.)",
+    "layer": "query-engine",
+    "criticality": 0.95,
+    "rationale": "Business logic of every insight type; wrong math = wrong customer numbers."
+   },
+   {
+    "pathPrefix": "common/hogql_parser/",
+    "area": "HogQL C++ parser",
+    "layer": "query-engine",
+    "criticality": 0.85,
+    "rationale": "Native parser for HogQL; deep, low-level."
+   },
+   {
+    "pathPrefix": "common/hogvm/",
+    "area": "HogVM bytecode VM (Python/TS)",
+    "layer": "query-engine",
+    "criticality": 0.85,
+    "rationale": "Executes Hog code for CDP/transformations; language runtime work."
+   },
+   {
+    "pathPrefix": "posthog/clickhouse/",
+    "area": "ClickHouse schema, client, migrations, preaggregation",
+    "layer": "data-pipeline",
+    "criticality": 0.9,
+    "rationale": "Table definitions, materialized views, preaggregation; storage-layer correctness and perf."
+   },
+   {
+    "pathPrefix": "funnel-udf/",
+    "area": "Funnel UDF (Rust, ClickHouse)",
+    "layer": "query-engine",
+    "criticality": 0.85,
+    "rationale": "Funnel computation run inside ClickHouse; algorithmic core of funnels."
+   },
+   {
+    "pathPrefix": "clickhouse-udfs/",
+    "area": "ClickHouse UDFs",
+    "layer": "query-engine",
+    "criticality": 0.75,
+    "rationale": "Custom ClickHouse functions used by queries."
+   },
+   {
+    "pathPrefix": "posthog/temporal/",
+    "area": "Temporal workflows (deletes, backfills, usage reports, exports)",
+    "layer": "data-pipeline",
+    "criticality": 0.8,
+    "rationale": "Durable background workflows incl. person/team deletion and usage reporting; correctness and compliance."
+   },
+   {
+    "pathPrefix": "posthog/models/",
+    "area": "Django core models",
+    "layer": "backend-core",
+    "criticality": 0.75,
+    "rationale": "Core domain model (teams, persons, flags, insights); broad blast radius."
+   },
+   {
+    "pathPrefix": "posthog/api/",
+    "area": "Django REST API",
+    "layer": "backend-core",
+    "criticality": 0.65,
+    "rationale": "Public/internal API surface; many changes are CRUD-level."
+   },
+   {
+    "pathPrefix": "posthog/session_recordings/",
+    "area": "Session recordings backend (Django)",
+    "layer": "backend-product",
+    "criticality": 0.7,
+    "rationale": "Recording listing/queries/playback APIs."
+   },
+   {
+    "pathPrefix": "posthog/cdp/",
+    "area": "CDP backend (Django)",
+    "layer": "backend-product",
+    "criticality": 0.65,
+    "rationale": "Hog function templates/config API; runtime lives in nodejs."
+   },
+   {
+    "pathPrefix": "posthog/warehouse/",
+    "area": "Data warehouse (legacy Django location)",
+    "layer": "data-pipeline",
+    "criticality": 0.75,
+    "rationale": "External source sync and warehouse tables."
+   },
+   {
+    "pathPrefix": "posthog/tasks/",
+    "area": "Celery tasks",
+    "layer": "backend-core",
+    "criticality": 0.6,
+    "rationale": "Periodic/background jobs."
+   },
+   {
+    "pathPrefix": "posthog/dags/",
+    "area": "Dagster jobs in posthog/",
+    "layer": "data-pipeline",
+    "criticality": 0.65,
+    "rationale": "Scheduled data jobs."
+   },
+   {
+    "pathPrefix": "posthog/migrations/",
+    "area": "Django migrations",
+    "layer": "generated",
+    "criticality": 0.2,
+    "rationale": "Mostly autogenerated schema diffs."
+   },
+   {
+    "pathPrefix": "posthog/",
+    "area": "Other Django core (settings, caching, rbac, kafka_client, personhog_client, query_cache, etc.)",
+    "layer": "backend-core",
+    "criticality": 0.6,
+    "rationale": "Catch-all for platform code; mixed depth."
+   },
+   {
+    "pathPrefix": "ee/hogai/",
+    "area": "PostHog AI / Max agent backend",
+    "layer": "backend-product",
+    "criticality": 0.65,
+    "rationale": "LLM agent backend; high-visibility product, but not data-correctness."
+   },
+   {
+    "pathPrefix": "ee/clickhouse/",
+    "area": "EE ClickHouse queries",
+    "layer": "query-engine",
+    "criticality": 0.75,
+    "rationale": "Enterprise query logic."
+   },
+   {
+    "pathPrefix": "ee/billing/",
+    "area": "Billing integration",
+    "layer": "backend-core",
+    "criticality": 0.7,
+    "rationale": "Money path."
+   },
+   {
+    "pathPrefix": "ee/",
+    "area": "Other enterprise backend (api, models, session_recordings, surveys)",
+    "layer": "backend-product",
+    "criticality": 0.55,
+    "rationale": "Mixed enterprise feature code."
+   },
+   {
+    "pathPrefix": "products/error_tracking/backend/",
+    "area": "Error tracking product backend",
+    "layer": "backend-product",
+    "criticality": 0.75,
+    "rationale": "Issue grouping, assignment, queries for error tracking."
+   },
+   {
+    "pathPrefix": "products/feature_flags/backend/",
+    "area": "Feature flags product backend (Django)",
+    "layer": "backend-product",
+    "criticality": 0.8,
+    "rationale": "Flag definitions/config feeding the Rust evaluator."
+   },
+   {
+    "pathPrefix": "products/batch_exports/backend/",
+    "area": "Batch exports backend (Temporal \u2192 S3/BigQuery/Snowflake/etc.)",
+    "layer": "data-pipeline",
+    "criticality": 0.85,
+    "rationale": "Moves customer data to their warehouses; correctness/completeness critical."
+   },
+   {
+    "pathPrefix": "products/data_warehouse/backend/",
+    "area": "Data warehouse product backend",
+    "layer": "data-pipeline",
+    "criticality": 0.8,
+    "rationale": "Warehouse tables, saved queries, modeling."
+   },
+   {
+    "pathPrefix": "products/warehouse_sources/",
+    "area": "Warehouse source connectors",
+    "layer": "data-pipeline",
+    "criticality": 0.7,
+    "rationale": "Import pipelines from external sources (Stripe, Postgres, etc.)."
+   },
+   {
+    "pathPrefix": "products/data_modeling/",
+    "area": "Data modeling (materialized views/DAG)",
+    "layer": "data-pipeline",
+    "criticality": 0.75,
+    "rationale": "Materialization of warehouse models."
+   },
+   {
+    "pathPrefix": "products/experiments/backend/",
+    "area": "Experiments stats backend",
+    "layer": "backend-product",
+    "criticality": 0.8,
+    "rationale": "Statistical engines (Bayesian/frequentist); wrong math = wrong ship decisions."
+   },
+   {
+    "pathPrefix": "products/web_analytics/backend/",
+    "area": "Web analytics backend",
+    "layer": "query-engine",
+    "criticality": 0.75,
+    "rationale": "Web analytics query runners and preaggregation."
+   },
+   {
+    "pathPrefix": "products/revenue_analytics/backend/",
+    "area": "Revenue analytics backend",
+    "layer": "query-engine",
+    "criticality": 0.7,
+    "rationale": "Revenue views/queries over warehouse data."
+   },
+   {
+    "pathPrefix": "products/cdp/backend/",
+    "area": "CDP product backend",
+    "layer": "backend-product",
+    "criticality": 0.65,
+    "rationale": "Destinations/templates config."
+   },
+   {
+    "pathPrefix": "products/workflows/backend/",
+    "area": "Workflows backend",
+    "layer": "backend-product",
+    "criticality": 0.6,
+    "rationale": "Workflow automation config."
+   },
+   {
+    "pathPrefix": "products/logs/backend/",
+    "area": "Logs product backend",
+    "layer": "backend-product",
+    "criticality": 0.65,
+    "rationale": "Logs query/API."
+   },
+   {
+    "pathPrefix": "products/llm_analytics/backend/",
+    "area": "LLM analytics backend",
+    "layer": "backend-product",
+    "criticality": 0.6,
+    "rationale": "LLM trace analytics."
+   },
+   {
+    "pathPrefix": "products/",
+    "area": "Other product backends (products/*/backend, products/*/dags) \u2014 use glob products/*/backend/",
+    "layer": "backend-product",
+    "criticality": 0.55,
+    "rationale": "~100 vertical products; backend code here is product logic of mixed depth. Frontend under products/*/frontend should be classified separately (frontend-product)."
+   },
+   {
+    "pathPrefix": "dags/",
+    "area": "Dagster data jobs (if present at root; in this tree jobs live in posthog/dags and products/*/dags)",
+    "layer": "data-pipeline",
+    "criticality": 0.65,
+    "rationale": "No root dags/ exists on master; keep as fallback mapping only."
+   },
+   {
+    "pathPrefix": "livestream/",
+    "area": "Livestream (Go, real-time events stream)",
+    "layer": "backend-core",
+    "criticality": 0.6,
+    "rationale": "Real-time event tail service; not on durable data path."
+   },
+   {
+    "pathPrefix": "services/hogql-language-service/",
+    "area": "HogQL language service",
+    "layer": "query-engine",
+    "criticality": 0.55,
+    "rationale": "Editor tooling for HogQL."
+   },
+   {
+    "pathPrefix": "services/mcp/",
+    "area": "PostHog MCP server",
+    "layer": "backend-product",
+    "criticality": 0.5,
+    "rationale": "AI tool integration surface."
+   },
+   {
+    "pathPrefix": "services/",
+    "area": "Other services (llm-gateway, oauth-proxy, agent-proxy, integration-service, stripe-app)",
+    "layer": "backend-product",
+    "criticality": 0.5,
+    "rationale": "Peripheral services."
+   },
+   {
+    "pathPrefix": "proto/",
+    "area": "Protobuf definitions",
+    "layer": "backend-core",
+    "criticality": 0.5,
+    "rationale": "Cross-service contracts; small but load-bearing interface changes."
+   },
+   {
+    "pathPrefix": "common/ingestion/",
+    "area": "Shared ingestion libs",
+    "layer": "ingestion",
+    "criticality": 0.8,
+    "rationale": "Shared ingestion code."
+   },
+   {
+    "pathPrefix": "common/plugin_transpiler/",
+    "area": "Plugin transpiler",
+    "layer": "backend-core",
+    "criticality": 0.5,
+    "rationale": "Legacy plugin support."
+   },
+   {
+    "pathPrefix": "common/",
+    "area": "Other common libs (esbuilder, replay-shared, storybook, tailwind, fixtures)",
+    "layer": "frontend-core",
+    "criticality": 0.35,
+    "rationale": "Build/UI shared tooling."
+   },
+   {
+    "pathPrefix": "terraform/",
+    "area": "Terraform infra",
+    "layer": "infra-ci",
+    "criticality": 0.45,
+    "rationale": "Infrastructure as code."
+   },
+   {
+    "pathPrefix": "docker/",
+    "area": "Docker configs (clickhouse, kafka, temporal, postgres init)",
+    "layer": "infra-ci",
+    "criticality": 0.35,
+    "rationale": "Local/dev infra config."
+   },
+   {
+    "pathPrefix": ".github/",
+    "area": "CI/CD workflows",
+    "layer": "infra-ci",
+    "criticality": 0.35,
+    "rationale": "CI health has leverage on everyone, but mostly config churn."
+   },
+   {
+    "pathPrefix": "bin/",
+    "area": "Scripts (bin)",
+    "layer": "infra-ci",
+    "criticality": 0.25,
+    "rationale": "Dev/ops scripts."
+   },
+   {
+    "pathPrefix": "devenv/",
+    "area": "Dev environment",
+    "layer": "infra-ci",
+    "criticality": 0.25,
+    "rationale": "Developer tooling."
+   },
+   {
+    "pathPrefix": "tools/",
+    "area": "Repo tooling",
+    "layer": "infra-ci",
+    "criticality": 0.25,
+    "rationale": "Internal tools."
+   },
+   {
+    "pathPrefix": "cli/",
+    "area": "PostHog CLI",
+    "layer": "other",
+    "criticality": 0.4,
+    "rationale": "CLI tool."
+   },
+   {
+    "pathPrefix": "playwright/",
+    "area": "E2E tests",
+    "layer": "tests",
+    "criticality": 0.3,
+    "rationale": "End-to-end tests."
+   },
+   {
+    "pathPrefix": "docs/",
+    "area": "Docs",
+    "layer": "docs",
+    "criticality": 0.15,
+    "rationale": "Documentation."
+   },
+   {
+    "pathPrefix": ".agents/",
+    "area": "AI agent configs (.agents/.claude/.cursor/.codex)",
+    "layer": "docs",
+    "criticality": 0.1,
+    "rationale": "Agent prompts/config; low engineering depth."
+   }
+  ],
+  "noisePatterns": [
+   "pnpm-lock.yaml",
+   "uv.lock",
+   "Cargo.lock",
+   "**/package-lock.json",
+   "posthog/migrations/",
+   "ee/migrations/",
+   "products/*/backend/migrations/",
+   "**/migrations/*.py (Django autogen)",
+   "rust/.sqlx/",
+   "**/__snapshots__/",
+   "**/*.ambr",
+   "**/*.snap",
+   "frontend/__snapshots__/",
+   "**/*.png",
+   "**/*.svg",
+   "frontend/src/queries/schema.json",
+   "frontend/src/queries/schema/",
+   "posthog/schema.py (generated from TS schema)",
+   "**/*Type.ts (kea typegen)",
+   "**/generated/",
+   "**/*.generated.*",
+   "services/mcp/schema/ (generated tools)",
+   "products/*/mcp/*.yaml",
+   "common/hogql_parser/ generated grammar files",
+   "posthog/hogql/grammar/*Lexer*.py, *Parser*.py, *Visitor*.py (ANTLR generated)",
+   ".test_quarantine.json",
+   "CHANGELOG.md",
+   ".agents/",
+   ".claude/",
+   ".cursor/",
+   ".codex/",
+   "**/fixtures/",
+   "**/test_data/"
+  ],
+  "notes": "I checked these prefixes against the master tree with `gh api git/trees`. Top-level directories: rust, nodejs (the plugin-server has been renamed nodejs/), posthog, ee, products (about 100 products, each with backend/, frontend/, mcp/ and sometimes dags/), common, services, livestream, funnel-udf, clickhouse-udfs, proto, terraform, docker, bin, cli, devenv, tools. There is no root dags/ directory; Dagster jobs live in posthog/dags and products/*/dags. nodejs/src has ingestion/, cdp/, session-replay/, logs/, messaging/, ai-observability/. There is no rust/feature-flags sibling named \"flags\": the crate is rust/feature-flags. The cymbal crate and the property-defs-rs and property-vals-rs crates exist. personhog-* is a large family of crates for a new replicated person store (leader, replica, router, writer, coordination, stateright model checking). It is probably the deepest backend work right now, so weight it heavily. posthog/hogql has compiler/, printer/, database/, cost/, transforms/, functions/ and grammar/. Grammar parser files are ANTLR-generated noise. Ownership: the root owners.yaml declares github_org teams, and each product's product.yaml lists that product's owners. Use these to map a PR to a team. Match the longest prefix first: for example, rust/capture/ before rust/, and nodejs/src/ingestion/ before nodejs/src/. A \"products/\" catch-all should first check segment 3. If it is 'backend', 'dags' or 'mcp', classify the file as product backend (0.55 by default, higher for the specific products listed). If it is 'frontend', classify it as frontend-product. Suggested criticality tiers: 1.0 = capture, Node ingestion, the HogQL engine. About 0.9\u20130.95 = query runners, person store, flags evaluator, ClickHouse schema, dedup. About 0.8\u20130.85 = batch exports, CDP runtime, cymbal, cohorts, experiments stats, Temporal. About 0.6\u20130.75 = product backends and the Django API. 0.2\u20130.45 = infra, CI, tests, scripts. 0.1\u20130.2 = docs, agent configs, migrations."
+ },
+ "frontend": {
+  "areas": [
+   {
+    "pathPrefix": "frontend/src/queries/nodes/",
+    "area": "Query rendering engine (DataNode, InsightViz, DataTable, DataVisualization/SQL viz)",
+    "layer": "frontend-core",
+    "criticality": 0.85,
+    "rationale": "241 files. Generic engine that renders every HogQL/insight query result across all products (DataVisualization 88, InsightViz 44, DataTable 41, DataNode 25). Changes here affect every analytics surface. Genuinely complex, not boilerplate."
+   },
+   {
+    "pathPrefix": "frontend/src/queries/schema/",
+    "area": "Query schema source of truth (TS types -> schema.json -> posthog/schema.py)",
+    "layer": "frontend-core",
+    "criticality": 0.8,
+    "rationale": "Hand-written TS (schema-general.ts etc.) that is the contract between frontend and HogQL backend; generates frontend/src/queries/schema.json and posthog/schema.py. Hand-edits here are high-leverage; the generated outputs are noise."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/session-recordings/player/",
+    "area": "Session replay player (rrweb playback, mobile replay transforms)",
+    "layer": "frontend-product",
+    "criticality": 0.85,
+    "rationale": "194 files; replay player, snapshot processing, mobile-replay schema transforms. One of the most technically complex frontend surfaces and core to flagship Session Replay."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/session-recordings/",
+    "area": "Session replay (playlist, filters, rest of scene)",
+    "layer": "frontend-product",
+    "criticality": 0.65,
+    "rationale": "341 files total. Flagship product; non-player parts (playlists, filters, collections, kiosk) are more standard UI."
+   },
+   {
+    "pathPrefix": "frontend/src/lib/monaco/",
+    "area": "HogQL/Hog code editor (Monaco language support, autocomplete, parser)",
+    "layer": "frontend-core",
+    "criticality": 0.75,
+    "rationale": "Language tooling for HogQL in the browser (autocomplete provider, parser wasm/cjs). Complex compiler-adjacent frontend work. Pair with frontend/src/lib/components/HogQLEditor/."
+   },
+   {
+    "pathPrefix": "frontend/src/lib/charts/",
+    "area": "Charting/data-viz engine",
+    "layer": "frontend-core",
+    "criticality": 0.7,
+    "rationale": "Shared chart hooks, theming, color utils used by insights; data-viz engine work is deeper than generic components."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/insights/",
+    "area": "Product analytics insights (trends/funnels/retention UI, insightDataLogic)",
+    "layer": "frontend-product",
+    "criticality": 0.75,
+    "rationale": "173 files; core product analytics UI and kea data logics. Flagship product surface (pairs with products/product_analytics/)."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/notebooks/",
+    "area": "Notebooks rich editor (TipTap nodes)",
+    "layer": "frontend-product",
+    "criticality": 0.6,
+    "rationale": "197 files; Notebook editor + 89 custom editor Nodes. Moderately complex editor engineering; pairs with products/notebooks and lib/components/MarkdownNotebook."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/experiments/",
+    "area": "Experiments UI",
+    "layer": "frontend-product",
+    "criticality": 0.65,
+    "rationale": "212 files; flagship product. Stats rendering, metric configuration. Backend/stats lives in products/experiments/backend and products/experiments/stats."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/feature-flags/",
+    "area": "Feature flags UI",
+    "layer": "frontend-product",
+    "criticality": 0.6,
+    "rationale": "138 files; flagship product configuration UI (release conditions, targeting). Backend evaluation is the higher-criticality part."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/web-analytics/",
+    "area": "Web analytics UI",
+    "layer": "frontend-product",
+    "criticality": 0.6,
+    "rationale": "222 files; flagship product frontend (no products/web_analytics folder exists; backend lives in posthog/hogql_queries/web_analytics)."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/data-warehouse/",
+    "area": "Data warehouse / SQL editor UI",
+    "layer": "frontend-product",
+    "criticality": 0.6,
+    "rationale": "89 files; SQL editor and warehouse scenes, pairs with products/data_warehouse/frontend."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/max/",
+    "area": "Max AI assistant chat UI (legacy location)",
+    "layer": "frontend-product",
+    "criticality": 0.55,
+    "rationale": "134 files; AI assistant frontend; much has moved to products/posthog_ai/frontend. Backend agent is ee/hogai."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/hog-functions/",
+    "area": "CDP / Hog functions (destinations, transformations) UI",
+    "layer": "frontend-product",
+    "criticality": 0.55,
+    "rationale": "86 files; configuration UI for CDP pipelines; pairs with data-pipelines scene and nodejs CDP workers."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/surveys/",
+    "area": "Surveys UI",
+    "layer": "frontend-product",
+    "criticality": 0.5,
+    "rationale": "175 files; mostly form/builder UI; products/surveys holds backend."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/dashboard/",
+    "area": "Dashboards UI",
+    "layer": "frontend-product",
+    "criticality": 0.5,
+    "rationale": "110 files; grid layout and tiles; pairs with products/dashboards."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/settings/",
+    "area": "Settings pages",
+    "layer": "frontend-product",
+    "criticality": 0.25,
+    "rationale": "308 files; mostly toggles/forms per setting; easily spun up, high file count inflates naive metrics."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/onboarding/",
+    "area": "Onboarding flows",
+    "layer": "frontend-product",
+    "criticality": 0.25,
+    "rationale": "271 files; product onboarding/install snippets; growth-oriented UI, low technical depth."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/billing/",
+    "area": "Billing UI",
+    "layer": "frontend-product",
+    "criticality": 0.3,
+    "rationale": "77 files; business-important but standard UI."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/authentication/",
+    "area": "Auth/login UI",
+    "layer": "frontend-product",
+    "criticality": 0.3,
+    "rationale": "88 files; standard forms."
+   },
+   {
+    "pathPrefix": "frontend/src/scenes/",
+    "area": "Other scenes (project homepage, data-management, cohorts, activity, health, terminal, etc.)",
+    "layer": "frontend-product",
+    "criticality": 0.4,
+    "rationale": "Catch-all for remaining scene folders; mid-weight product UI."
+   },
+   {
+    "pathPrefix": "frontend/src/lib/components/TaxonomicFilter/",
+    "area": "Taxonomic filter (event/property picker used everywhere)",
+    "layer": "frontend-core",
+    "criticality": 0.6,
+    "rationale": "98 files; cross-product core input for query construction. More complex than generic components. Similarly PropertyFilters/ (53) and UniversalFilters/."
+   },
+   {
+    "pathPrefix": "frontend/src/lib/components/",
+    "area": "Shared app components (generic UI widgets)",
+    "layer": "frontend-core",
+    "criticality": 0.35,
+    "rationale": "1194 files, mostly generic widgets (Cards, Errors, ActivityLog, DateFilter, Hogfetti, NavPanelAdvertisement, EmojiPicker, PayGateMini, HelpMenu). Easily spun-up UI; exceptions: TaxonomicFilter, PropertyFilters, HogQLEditor, MarkdownNotebook, heatmaps, CyclotronJob."
+   },
+   {
+    "pathPrefix": "frontend/src/lib/lemon-ui/",
+    "area": "Lemon UI design system primitives",
+    "layer": "frontend-core",
+    "criticality": 0.35,
+    "rationale": "274 files; buttons/inputs/tables/modals. Foundational but low algorithmic complexity; many stories."
+   },
+   {
+    "pathPrefix": "frontend/src/layout/",
+    "area": "App shell / navigation (navigation-3000, panel-layout, today)",
+    "layer": "frontend-core",
+    "criticality": 0.3,
+    "rationale": "~330 files; nav, side panels, scene tabs. Visible but mostly layout UI."
+   },
+   {
+    "pathPrefix": "frontend/src/lib/",
+    "area": "Frontend core libs (utils, hooks, logic, api.ts, integrations)",
+    "layer": "frontend-core",
+    "criticality": 0.45,
+    "rationale": "api client, kea logic helpers, utils. Mid-weight shared plumbing."
+   },
+   {
+    "pathPrefix": "frontend/src/mocks/",
+    "area": "Frontend mocks/fixtures",
+    "layer": "tests",
+    "criticality": 0.1,
+    "rationale": "104 fixture files for storybook/jest."
+   },
+   {
+    "pathPrefix": "frontend/public/",
+    "area": "Static assets (images, icons, fonts)",
+    "layer": "other",
+    "criticality": 0.05,
+    "rationale": "1687 static files; noise."
+   },
+   {
+    "pathPrefix": "products/product_analytics/",
+    "area": "Product analytics vertical (trends/funnels/retention backend + frontend)",
+    "layer": "backend-product",
+    "criticality": 0.9,
+    "rationale": "Flagship. backend 255 / frontend 370; backend query runners are core-engine adjacent. Weight backend/ (~0.9) higher than frontend/ (~0.65)."
+   },
+   {
+    "pathPrefix": "products/experiments/stats/",
+    "area": "Experiments statistics engine (Bayesian/frequentist)",
+    "layer": "backend-product",
+    "criticality": 0.9,
+    "rationale": "Dedicated stats package; mathematically deep, correctness-critical."
+   },
+   {
+    "pathPrefix": "products/experiments/",
+    "area": "Experiments vertical",
+    "layer": "backend-product",
+    "criticality": 0.8,
+    "rationale": "Flagship. backend 283 (metric query runners), frontend 135."
+   },
+   {
+    "pathPrefix": "products/feature_flags/",
+    "area": "Feature flags vertical",
+    "layer": "backend-product",
+    "criticality": 0.8,
+    "rationale": "Flagship. backend 209 (flag models, evaluation API), frontend 45. Rust flag evaluation service lives under rust/ (not in truncated tree)."
+   },
+   {
+    "pathPrefix": "products/error_tracking/",
+    "area": "Error tracking vertical",
+    "layer": "backend-product",
+    "criticality": 0.75,
+    "rationale": "Flagship, fast-growing. backend 240 (issue grouping, symbol sets), frontend 332 (stack trace UI)."
+   },
+   {
+    "pathPrefix": "products/data_warehouse/",
+    "area": "Data warehouse vertical",
+    "layer": "data-pipeline",
+    "criticality": 0.8,
+    "rationale": "backend 230 (saved queries, external tables, HogQL integration), frontend 203."
+   },
+   {
+    "pathPrefix": "products/warehouse_sources/backend/temporal/data_imports/sources/",
+    "area": "Warehouse source connectors (incl. generated_configs)",
+    "layer": "data-pipeline",
+    "criticality": 0.55,
+    "rationale": "7274 files total but 1364 are generated_configs; many connectors are templated/repetitive. Hand-written pipeline/core import code is high value; per-source boilerplate is lower. Discount by additions."
+   },
+   {
+    "pathPrefix": "products/data_modeling/",
+    "area": "Data modeling (materialized views/DAG)",
+    "layer": "data-pipeline",
+    "criticality": 0.7,
+    "rationale": "backend 168; DAG of warehouse models, pipeline logic."
+   },
+   {
+    "pathPrefix": "products/batch_exports/",
+    "area": "Batch exports (Temporal workflows to S3/BigQuery/Snowflake...)",
+    "layer": "data-pipeline",
+    "criticality": 0.8,
+    "rationale": "263 backend files, nearly zero frontend; correctness-critical data pipeline."
+   },
+   {
+    "pathPrefix": "products/replay_vision/",
+    "area": "Replay vision (AI analysis of recordings)",
+    "layer": "backend-product",
+    "criticality": 0.6,
+    "rationale": "backend 375, frontend 282; new AI feature on top of replay."
+   },
+   {
+    "pathPrefix": "products/replay/",
+    "area": "Replay product package (backend models, MCP, skills)",
+    "layer": "backend-product",
+    "criticality": 0.65,
+    "rationale": "Small product package for session replay; bulk of replay is frontend/src/scenes/session-recordings, posthog/session_recordings, common/replay-*, and rust/nodejs ingestion. products/session_replay is a 2-file onboarding stub."
+   },
+   {
+    "pathPrefix": "products/ai_observability/",
+    "area": "LLM analytics / AI observability vertical",
+    "layer": "backend-product",
+    "criticality": 0.65,
+    "rationale": "frontend 654, backend 350, fixtures 175. Successor of products/llm_analytics (now a near-empty shell). Trace viewer UI is moderately complex."
+   },
+   {
+    "pathPrefix": "products/posthog_ai/",
+    "area": "PostHog AI (Max) frontend + evals",
+    "layer": "frontend-product",
+    "criticality": 0.6,
+    "rationale": "frontend 424, eval_harness/evals ~140, skills 78. Agent backend is ee/hogai."
+   },
+   {
+    "pathPrefix": "ee/hogai/",
+    "area": "Max AI agent backend (LangGraph agent, tools, schema generators)",
+    "layer": "backend-product",
+    "criticality": 0.75,
+    "rationale": "535 files; AI agent orchestration, query-generation tools. Technically deep backend."
+   },
+   {
+    "pathPrefix": "products/signals/",
+    "area": "Signals (anomaly/insight signals) vertical",
+    "layer": "backend-product",
+    "criticality": 0.55,
+    "rationale": "backend 651, frontend 474; newer product, large."
+   },
+   {
+    "pathPrefix": "products/logs/",
+    "area": "Logs vertical",
+    "layer": "backend-product",
+    "criticality": 0.6,
+    "rationale": "backend 177, frontend 256; new observability product with ClickHouse queries."
+   },
+   {
+    "pathPrefix": "products/tracing/",
+    "area": "Tracing (APM) vertical",
+    "layer": "backend-product",
+    "criticality": 0.55,
+    "rationale": "backend 74, frontend 145."
+   },
+   {
+    "pathPrefix": "products/revenue_analytics/",
+    "area": "Revenue analytics vertical",
+    "layer": "backend-product",
+    "criticality": 0.6,
+    "rationale": "backend 82 (HogQL views over warehouse data), frontend 16."
+   },
+   {
+    "pathPrefix": "products/marketing_analytics/",
+    "area": "Marketing analytics vertical",
+    "layer": "backend-product",
+    "criticality": 0.5,
+    "rationale": "backend 169, frontend 83."
+   },
+   {
+    "pathPrefix": "products/customer_analytics/",
+    "area": "Customer analytics vertical",
+    "layer": "backend-product",
+    "criticality": 0.5,
+    "rationale": "backend 253, frontend 310."
+   },
+   {
+    "pathPrefix": "products/surveys/",
+    "area": "Surveys vertical",
+    "layer": "backend-product",
+    "criticality": 0.5,
+    "rationale": "backend 55, frontend 19 (most UI in frontend/src/scenes/surveys)."
+   },
+   {
+    "pathPrefix": "products/dashboards/",
+    "area": "Dashboards vertical",
+    "layer": "frontend-product",
+    "criticality": 0.5,
+    "rationale": "frontend 215, backend 102."
+   },
+   {
+    "pathPrefix": "products/notebooks/",
+    "area": "Notebooks vertical",
+    "layer": "backend-product",
+    "criticality": 0.45,
+    "rationale": "backend 144, frontend 71."
+   },
+   {
+    "pathPrefix": "products/cdp/",
+    "area": "CDP product package",
+    "layer": "backend-product",
+    "criticality": 0.6,
+    "rationale": "backend 58, frontend 25; CDP runtime is nodejs/src/cdp."
+   },
+   {
+    "pathPrefix": "products/cohorts/",
+    "area": "Cohorts",
+    "layer": "backend-product",
+    "criticality": 0.6,
+    "rationale": "backend 87; cohort calculation is query-engine adjacent."
+   },
+   {
+    "pathPrefix": "products/desktop/",
+    "area": "PostHog desktop app (Electron, packages)",
+    "layer": "other",
+    "criticality": 0.35,
+    "rationale": "5566 files (packages 4675, apps 774); separate app, likely vendored/large; discount heavily for core-product impact."
+   },
+   {
+    "pathPrefix": "products/review_hog/eval/",
+    "area": "ReviewHog eval datasets",
+    "layer": "tests",
+    "criticality": 0.1,
+    "rationale": "748 eval fixture files; noise."
+   },
+   {
+    "pathPrefix": "products/",
+    "area": "Other product verticals (tasks, conversations, canvas, mcp_*, stamphog, alerts, endpoints, growth, etc.)",
+    "layer": "backend-product",
+    "criticality": 0.4,
+    "rationale": "~80 product folders total; long tail of newer/internal products. Rule of thumb: products/*/backend/ ~0.55, products/*/frontend/ ~0.35, products/*/frontend/generated/ ~0 (OpenAPI codegen), mcp/skills/evals ~0.2."
+   },
+   {
+    "pathPrefix": "common/hogvm/",
+    "area": "HogVM (bytecode VM, Python + TS implementations)",
+    "layer": "query-engine",
+    "criticality": 0.85,
+    "rationale": "Language runtime powering CDP/Hog functions; deep. Note __snapshots__ (.hoge/.stdout/.js) inside are generated test outputs."
+   },
+   {
+    "pathPrefix": "common/hogql_parser/",
+    "area": "HogQL parser (C++ ANTLR extension)",
+    "layer": "query-engine",
+    "criticality": 0.95,
+    "rationale": "Native parser for the HogQL query language; core engine."
+   },
+   {
+    "pathPrefix": "common/replay-shared/",
+    "area": "Shared replay processing libs (and common/replay-headless)",
+    "layer": "data-pipeline",
+    "criticality": 0.7,
+    "rationale": "Shared replay snapshot processing used by player and headless rendering."
+   },
+   {
+    "pathPrefix": "common/plugin_transpiler/",
+    "area": "Plugin/site-app transpiler",
+    "layer": "backend-core",
+    "criticality": 0.55,
+    "rationale": "Compiles site apps/destinations code."
+   },
+   {
+    "pathPrefix": "common/storybook/",
+    "area": "Storybook config",
+    "layer": "tests",
+    "criticality": 0.15,
+    "rationale": "Visual-regression harness config; tooling."
+   },
+   {
+    "pathPrefix": "common/",
+    "area": "Other common packages (esbuilder, tailwind, ingestion, migration_utils, fixtures)",
+    "layer": "infra-ci",
+    "criticality": 0.35,
+    "rationale": "Build tooling and shared config."
+   },
+   {
+    "pathPrefix": "packages/",
+    "area": "Monorepo packages (agent, quill, llm-normalizer, owners-yaml, personhog-proto)",
+    "layer": "other",
+    "criticality": 0.4,
+    "rationale": "packages/agent (685) and packages/quill (504) are sizable libraries; personhog-proto is protobuf (generated-ish)."
+   },
+   {
+    "pathPrefix": "playwright/",
+    "area": "Playwright E2E tests",
+    "layer": "tests",
+    "criticality": 0.25,
+    "rationale": "75 files (e2e 43, page-models 15). Test work: credit as quality, not core impact. Cypress essentially removed (1 file)."
+   },
+   {
+    "pathPrefix": "frontend/__snapshots__/",
+    "area": "Storybook visual regression PNG snapshots",
+    "layer": "generated",
+    "criticality": 0.02,
+    "rationale": "155 PNGs auto-updated by CI bot commits; pure noise."
+   },
+   {
+    "pathPrefix": "frontend/src/generated/",
+    "area": "Generated OpenAPI client/types (api.ts, api.schemas.ts, api.zod.ts)",
+    "layer": "generated",
+    "criticality": 0.02,
+    "rationale": "Codegen from backend OpenAPI; huge diffs with zero authored effort."
+   },
+   {
+    "pathPrefix": "frontend/src/queries/schema.json",
+    "area": "Generated query JSON schema",
+    "layer": "generated",
+    "criticality": 0.02,
+    "rationale": "Generated from queries/schema/*.ts; also posthog/schema.py, posthog/schema_enums.py, posthog/schema_discriminators.py are generated."
+   }
+  ],
+  "noisePatterns": [
+   "**/__snapshots__/**",
+   "frontend/__snapshots__/**/*.png",
+   "*.ambr",
+   "**/__snapshots__/*.hoge",
+   "**/__snapshots__/*.stdout",
+   "*.snap",
+   "pnpm-lock.yaml",
+   "uv.lock",
+   "**/package-lock.json",
+   "**/*.lock",
+   "**/frontend/generated/**",
+   "frontend/src/generated/**",
+   "**/*.generated.ts",
+   "frontend/src/queries/schema.json",
+   "frontend/src/queries/latest-versions.json",
+   "posthog/schema.py",
+   "posthog/schema_enums.py",
+   "posthog/schema_discriminators.py",
+   "nodejs/src/common/generated/**",
+   "**/*_pb.ts",
+   "**/*_pb2.py",
+   "posthog/usage_ingestion/generated/**",
+   "products/warehouse_sources/backend/temporal/data_imports/sources/**/generated_configs/**",
+   "**/migrations/**",
+   "**/max_migration.txt",
+   "posthog/clickhouse/migrations/**",
+   "frontend/public/**",
+   "frontend/src/mocks/fixtures/**",
+   "**/fixtures/**",
+   "products/review_hog/eval/**",
+   "**/evals/**",
+   "**/eval/**",
+   "**/*.stories.tsx (discount, not exclude)",
+   "**/*.test.ts / *.test.tsx / test_*.py (discount ~0.3, not exclude)",
+   "products/desktop/packages/** (likely vendored, discount)",
+   ".agents/skills/**",
+   "**/skills/**/*.md",
+   "**/*.md (docs, discount)",
+   ".github/workflows/** (infra, discount)",
+   "frontend/src/scenes/session-recordings/mobile-replay/schema/**/*.json",
+   "PRs authored by Bot __typename (github-actions, dependabot, posthog-bot)"
+  ],
+  "notes": "Method: `gh api repos/PostHog/posthog/git/trees/master?recursive=1` (58,088 entries, TRUNCATED: rust/, services/, proto/, terraform/, tools/, share/ top-level dirs exist but were not returned; the backend mapper should walk those by sha). Raw counts: products/ 29.5k files, frontend/ 8.2k, posthog/ 5.9k, nodejs/ 2.5k, ee/ 0.9k, common/ 370.\n\nKey structural facts:\n1) products/<name>/ is a vertical slice (products/README.md): backend/ (Django app), frontend/ (components/scenes/logics), frontend/generated/ (OpenAPI codegen, present in ~80 products, always noise), mcp/ (tools.yaml), skills/ (agent markdown), sometimes evals/, stats/, dags/. A robust classifier: path segment index 2 of products/* = backend|frontend|generated|mcp|skills|eval.\n2) Flagship mapping (frontend may still live in frontend/src/scenes): Product analytics = products/product_analytics + frontend/src/scenes/insights + frontend/src/queries/nodes; Session replay = frontend/src/scenes/session-recordings (player/ is the complex part) + posthog/session_recordings + common/replay-* + products/replay (products/session_replay is a 2-file onboarding stub); Feature flags = products/feature_flags + scenes/feature-flags (+ rust flags service); Experiments = products/experiments (stats/ subfolder is math-heavy) + scenes/experiments; Error tracking = products/error_tracking; Data warehouse = products/data_warehouse + products/warehouse_sources + products/data_modeling + scenes/data-warehouse; LLM analytics = products/ai_observability (products/llm_analytics is now a shell); Max AI = ee/hogai (backend) + products/posthog_ai + scenes/max; Web analytics has NO products folder: scenes/web-analytics + posthog/hogql_queries/web_analytics; Surveys, revenue_analytics, cdp have product folders but some UI still in scenes.\n3) Genuinely complex frontend: frontend/src/queries/nodes (DataVisualization/InsightViz/DataTable/DataNode), frontend/src/queries/schema/*.ts (hand-written contract that generates schema.json + posthog/schema.py), session-recordings/player, lib/monaco + lib/components/HogQLEditor (HogQL autocomplete/parser), lib/charts, notebooks Nodes/Notebook editor, lib/components/TaxonomicFilter + PropertyFilters + UniversalFilters. Easily spun-up UI: lib/components (most of 1194 files), lib/lemon-ui primitives, scenes/settings (308), scenes/onboarding (271), authentication, billing, layout/navigation, product empty states, *.stories.tsx (965 files).\n4) Kea logics (*Logic.ts, 1355 files) are committed; kea-generated *LogicType.ts are NOT committed (0), so no noise from typegen. Tests: ~4657 *.test/*.spec files; playwright/ e2e is small (75 files), cypress essentially gone.\n5) Noise volumes: /migrations/ 3567 files, warehouse_sources generated_configs 1364, __snapshots__ 586 (291 .ambr Python query snapshots, 154 PNGs, hogvm .hoge/.stdout/.js), generated/ dirs 257, products/desktop 5566 (separate Electron app, probably vendored packages), review_hog/eval 748.\nSuggested weighting for scoring: core engine (hogql parser, hogvm, query runners, ingestion) 0.85-0.95 > flagship product backends 0.75-0.9 > complex frontend engines (query nodes, replay player, monaco/HogQL editor, charts) 0.7-0.85 > flagship product UI 0.5-0.75 > long-tail product backends 0.5 > generic UI/settings/onboarding/lemon-ui 0.25-0.35 > tests 0.25 > docs/skills 0.1-0.2 > generated/snapshots/lockfiles/migrations ~0. Tree dump saved at /private/tmp/claude-501/-Users-ianallen-Projects-jobs-weave/4b8285dd-875b-4538-972c-5f9578619957/scratchpad/tree.json."
+ }
+}

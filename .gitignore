@@ -1,0 +1,10 @@
+node_modules/
+web/dist/
+.firebase/
+*.log
+pipeline/data/prs.jsonl
+functions-py/venv/
+functions-py/fetch_prs.py
+functions-py/score.py
+__pycache__/
+weaveos_assessment.md
